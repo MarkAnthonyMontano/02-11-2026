@@ -3,6 +3,31 @@ const { db, db3 } = require("../database/database");
 
 const router = express.Router();
 
+router.get("/interview_schedules", async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        s.schedule_id,
+        s.day_description,
+        s.building_description,
+        s.room_description,
+        s.start_time,
+        s.end_time,
+        s.interviewer,
+        s.room_quota,
+        s.created_at
+      FROM admission.interview_exam_schedule s
+      INNER JOIN enrollment.active_school_year_table sy ON s.active_school_year_id = sy.id
+      WHERE sy.astatus = 1
+      ORDER BY s.day_description, s.start_time
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Error fetching interview schedules:", err);
+    res.status(500).json({ error: "Failed to fetch interview schedules" });
+  }
+});
 
 // ================== INSERT INTERVIEW SCHEDULE ==================
 router.post("/insert_interview_schedule", async (req, res) => {
@@ -14,6 +39,7 @@ router.post("/insert_interview_schedule", async (req, res) => {
     end_time,
     interviewer,
     room_quota,
+    active_school_year_id,
   } = req.body;
 
   const [conflicts] = await db.query(
@@ -46,8 +72,8 @@ router.post("/insert_interview_schedule", async (req, res) => {
 
   await db.query(
     `INSERT INTO interview_exam_schedule
-     (day_description, building_description, room_description, start_time, end_time, interviewer, room_quota)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+     (day_description, building_description, room_description, start_time, end_time, interviewer, room_quota, active_school_year_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       day_description,
       building_description,
@@ -56,6 +82,7 @@ router.post("/insert_interview_schedule", async (req, res) => {
       end_time,
       interviewer,
       room_quota,
+      active_school_year_id
     ]
   );
 
@@ -73,6 +100,7 @@ router.put("/update_interview_schedule/:id", async (req, res) => {
     end_time,
     interviewer,
     room_quota,
+    active_school_year_id
   } = req.body;
 
   const [conflicts] = await db.query(
@@ -82,6 +110,7 @@ router.put("/update_interview_schedule/:id", async (req, res) => {
        AND day_description = ?
        AND building_description = ?
        AND room_description = ?
+       AND active_school_year_id = ?
        AND (
             (start_time < ? AND end_time > ?) OR
             (start_time < ? AND end_time > ?) OR
@@ -92,6 +121,7 @@ router.put("/update_interview_schedule/:id", async (req, res) => {
       day_description,
       building_description,
       room_description,
+      active_school_year_id,
       end_time,
       start_time,
       end_time,
@@ -113,7 +143,8 @@ router.put("/update_interview_schedule/:id", async (req, res) => {
          start_time = ?,
          end_time = ?,
          interviewer = ?,
-         room_quota = ?
+         room_quota = ?,
+         active_school_year_id = ?
      WHERE schedule_id = ?`,
     [
       day_description,
@@ -123,6 +154,7 @@ router.put("/update_interview_schedule/:id", async (req, res) => {
       end_time,
       interviewer,
       room_quota,
+      active_school_year_id,
       id,
     ]
   );

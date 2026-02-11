@@ -109,7 +109,14 @@ const AssignQualifyingInterviewExam = () => {
     const maxDate = `${currentYear}-12-31`;
 
 
-
+    const [activeSchoolYear, setActiveSchoolYear] = useState([]);
+    
+      useEffect(() => {
+        axios
+          .get(`${API_BASE_URL}/get_active_school_years`)
+          .then((res) => setActiveSchoolYear(res.data))
+          .catch((err) => console.error(err));
+      }, []);
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -209,6 +216,7 @@ const AssignQualifyingInterviewExam = () => {
             end_time: endTime,
             interviewer,
             room_quota: roomQuota || 40,
+            active_school_year_id: activeSchoolYear[0]?.id
         };
 
         try {

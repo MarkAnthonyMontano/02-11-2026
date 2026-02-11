@@ -188,6 +188,16 @@ const VerifyDocumentsSchedule = () => {
             setLoading(false);
         }
     };
+
+    const [activeSchoolYear, setActiveSchoolYear] = useState([]);
+    
+    useEffect(() => {
+      axios
+        .get(`${API_BASE_URL}/get_active_school_years`)
+        .then((res) => setActiveSchoolYear(res.data))
+        .catch((err) => console.error(err));
+    }, []);
+    
     const currentYear = new Date().getFullYear();
     const minDate = `${currentYear}-01-01`;
     const maxDate = `${currentYear}-12-31`;
@@ -220,6 +230,7 @@ const VerifyDocumentsSchedule = () => {
                 end_time: endTime,
                 evaluator: evaluator,
                 room_quota: Number(roomQuota),
+                active_school_year_id: activeSchoolYear[0]?.id
             });
 
             // ✅ SUCCESS
@@ -355,7 +366,8 @@ const VerifyDocumentsSchedule = () => {
                     start_time: startTime,
                     end_time: endTime,
                     evaluator: evaluator,
-                    room_quota: Number(roomQuota)
+                    room_quota: Number(roomQuota),
+                    active_school_year_id: activeSchoolYear[0]?.id,
                 }
             );
 

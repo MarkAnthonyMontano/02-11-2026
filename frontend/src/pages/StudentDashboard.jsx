@@ -177,68 +177,54 @@ const StudentDashboard = ({ profileImage, setProfileImage }) => {
   });
 
   const divToPrintRef = useRef();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
-  const printDiv = () => {
-    const divToPrint = divToPrintRef.current;
-    if (divToPrint) {
-      const newWin = window.open('', 'Print-Window');
-      newWin.document.open();
-      newWin.document.write(`
+  const handleGeneratePdf = async () => {
+    if (!divToPrintRef.current || pdfLoading) return;
+
+    setPdfLoading(true);
+
+    try {
+      const html = `
       <html>
         <head>
-          <title>Print</title>
-          <style>
-            @page {
-              size: A4;
-              margin: 0;
-            }
-
-            html, body {
-              margin: 0;
-              padding: 0;
-              width: 210mm;
-              height: 297mm;
-            
-              font-family: Arial, sans-serif;
-              overflow: hidden;
-            }
-
-            .print-container {
-              width: 110%;
-              height: 100%;
-
-              box-sizing: border-box;
-   
-              transform: scale(0.90);
-              transform-origin: top left;
-            }
-
-            * {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-
-            button {
-              display: none;
-            }
-
-            .student-table {
-              margin-top: 5px !important;
-            }
-          </style>
+          <link rel="stylesheet" href="${window.location.origin}/styles/Print.css" />
         </head>
-        <body onload="window.print(); setTimeout(() => window.close(), 100);">
-          <div class="print-container">
-            ${divToPrint.innerHTML}
-          </div>
+        <body>
+          ${divToPrintRef.current.innerHTML}
         </body>
       </html>
-    `);
-      newWin.document.close();
-    } else {
-      console.error("divToPrintRef is not set.");
+    `;
+
+      const res = await fetch(`${API_BASE_URL}/api/generate-cor-pdf`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ html }),
+      });
+
+      if (!res.ok) throw new Error("PDF failed");
+
+      const blob = await res.blob();
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "certificate_of_registration.pdf";
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error(err);
+      alert("PDF failed");
     }
+
+    setPdfLoading(false);
   };
+
 
 
 
@@ -1004,7 +990,7 @@ const StudentDashboard = ({ profileImage, setProfileImage }) => {
                   variant="contained"
                   startIcon={<DownloadIcon />}
                   sx={{ backgroundColor: settings?.header_color || "#1976d2", }}
-                  onClick={printDiv}
+                  onClick={handleGeneratePdf}
                 >
                   Download (Student's Copy)
                 </Button>

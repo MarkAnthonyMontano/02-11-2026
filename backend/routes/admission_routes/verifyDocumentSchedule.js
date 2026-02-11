@@ -13,7 +13,8 @@ router.post("/create_verify_document_schedule", async (req, res) => {
       start_time,
       end_time,
       evaluator,
-      room_quota
+      room_quota,
+      active_school_year_id,
     } = req.body;
 
     if (!schedule_date || !building_description || !room_description || !start_time || !end_time) {
@@ -28,8 +29,9 @@ router.post("/create_verify_document_schedule", async (req, res) => {
         WHERE schedule_date = ?
           AND building_description = ?
           AND room_description = ?
+          AND active_school_year_id = ?
       `,
-      [schedule_date, building_description, room_description]
+      [schedule_date, building_description, room_description, active_school_year_id]
     );
 
     if (existing.length > 0) {
@@ -42,8 +44,8 @@ router.post("/create_verify_document_schedule", async (req, res) => {
     const sql = `
       INSERT INTO verify_document_schedule
       (schedule_date, building_description, room_description,
-       start_time, end_time, evaluator, room_quota, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+       start_time, end_time, evaluator, room_quota, active_school_year_id, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
     `;
 
     const [result] = await db.query(sql, [
@@ -53,7 +55,8 @@ router.post("/create_verify_document_schedule", async (req, res) => {
       start_time,
       end_time,
       evaluator,
-      room_quota
+      room_quota,
+      active_school_year_id 
     ]);
 
     res.json({
@@ -72,16 +75,18 @@ router.get("/verify_document_schedule_list", async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT 
-        schedule_id,
-        schedule_date,
-        building_description,
-        room_description,
-        start_time,
-        end_time,
-        evaluator,
-        room_quota
-      FROM verify_document_schedule
-      ORDER BY schedule_date, start_time
+        vds.schedule_id,
+        vds.schedule_date,
+        vds.building_description,
+        vds.room_description,
+        vds.start_time,
+        vds.end_time,
+        vds.evaluator,
+        vds.room_quota
+      FROM admission.verify_document_schedule vds
+      INNER JOIN enrollment.active_school_year_table sy ON vds.active_school_year_id = sy.id
+      WHERE sy.astatus = 1
+      ORDER BY vds.schedule_date, vds.start_time 
     `);
 
     res.json(rows);
@@ -102,7 +107,8 @@ router.put("/update_verify_document_schedule/:schedule_id", async (req, res) => 
       start_time,
       end_time,
       evaluator,
-      room_quota
+      room_quota,
+      active_school_year_id
     } = req.body;
 
     const sql = `
@@ -113,7 +119,8 @@ router.put("/update_verify_document_schedule/:schedule_id", async (req, res) => 
           start_time = ?, 
           end_time = ?, 
           evaluator = ?, 
-          room_quota = ?
+          room_quota = ?,
+          active_school_year_id = ?
       WHERE schedule_id = ?
     `;
 
@@ -125,6 +132,7 @@ router.put("/update_verify_document_schedule/:schedule_id", async (req, res) => 
       end_time,
       evaluator,
       room_quota,
+      active_school_year_id,
       schedule_id
     ]);
 

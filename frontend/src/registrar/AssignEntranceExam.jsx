@@ -196,6 +196,15 @@ const AssignEntranceExam = () => {
     }
   };
 
+  const [activeSchoolYear, setActiveSchoolYear] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(`${API_BASE_URL}/get_active_school_years`)
+      .then((res) => setActiveSchoolYear(res.data))
+      .catch((err) => console.error(err));
+  }, []);
+
   const filteredSchedules = schedules.filter((s) => {
     const scheduleMonth = new Date(s.day_description).getMonth() + 1;
 
@@ -235,6 +244,7 @@ const AssignEntranceExam = () => {
             end_time: endTime,
             proctor,
             room_quota: roomQuota,
+            active_school_year_id: activeSchoolYear[0]?.id,
           }
         );
         setSnackbarMessage("Schedule updated");
@@ -249,6 +259,8 @@ const AssignEntranceExam = () => {
           end_time: endTime,
           proctor,
           room_quota: roomQuota,
+          active_school_year_id: activeSchoolYear[0]?.id,
+          
         });
         setSnackbarMessage("Schedule saved");
         setSnackbarSeverity("success");

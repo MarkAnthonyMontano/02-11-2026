@@ -7344,29 +7344,6 @@ app.get("/room_list", async (req, res) => {
 // POST - Insert Entrance Exam Schedule
 // ============================
 // ✅ Get all interview schedules
-app.get("/interview_schedules", async (req, res) => {
-  try {
-    const [rows] = await db.query(`
-      SELECT 
-        s.schedule_id,
-        s.day_description,
-        s.building_description,
-        s.room_description,
-        s.start_time,
-        s.end_time,
-        s.interviewer,
-        s.room_quota,
-        s.created_at
-      FROM admission.interview_exam_schedule s
-      ORDER BY s.day_description, s.start_time
-    `);
-
-    res.json(rows);
-  } catch (err) {
-    console.error("❌ Error fetching interview schedules:", err);
-    res.status(500).json({ error: "Failed to fetch interview schedules" });
-  }
-});
 
 // ✅ Get interview schedules with applicant counts
 // 3. Get interview schedules with occupancy count
@@ -7515,21 +7492,6 @@ app.put("/api/interview/remove_applicant", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
-  }
-});
-
-// 2. Get all interview schedules
-app.get("/interview_schedules", async (req, res) => {
-  try {
-    const [rows] = await db.query(`
-      SELECT *
-      FROM interview_exam_schedule
-      ORDER BY created_at DESC
-    `);
-    res.json(rows);
-  } catch (err) {
-    console.error("❌ Error fetching interview schedules:", err);
-    res.status(500).json({ error: "Failed to fetch interview schedules" });
   }
 });
 
@@ -15112,7 +15074,7 @@ app.get("/api/announcements/faculty", async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error("Error fetching student announcements:", err);
+    console.error("Error fetching faculty announcements:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
