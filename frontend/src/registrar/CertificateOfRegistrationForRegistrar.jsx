@@ -821,25 +821,7 @@ const CertificateOfRegistration = forwardRef(
       ? "Saved To Matriculation"
       : "Save Matriculation";
 
-    // ?? Disable right-click
-    document.addEventListener("contextmenu", (e) => e.preventDefault());
 
-    // ?? Block DevTools shortcuts + Ctrl+P silently
-    document.addEventListener("keydown", (e) => {
-      const isBlockedKey =
-        e.key === "F12" || // DevTools
-        e.key === "F11" || // Fullscreen
-        (e.ctrlKey &&
-          e.shiftKey &&
-          (e.key.toLowerCase() === "i" || e.key.toLowerCase() === "j")) || // Ctrl+Shift+I/J
-        (e.ctrlKey && e.key.toLowerCase() === "u") || // Ctrl+U (View Source)
-        (e.ctrlKey && e.key.toLowerCase() === "p"); // Ctrl+P (Print)
-
-      if (isBlockedKey) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    });
 
     // Put this at the very bottom before the return
     if (loading || hasAccess === null) {
@@ -1237,7 +1219,7 @@ const CertificateOfRegistration = forwardRef(
 
                         }}
                       >
-                      <b
+                        <b
                           style={{
                             fontFamily: "Arial, sans-serif",
                             fontSize: "12px",
@@ -1246,7 +1228,7 @@ const CertificateOfRegistration = forwardRef(
                         >
                           Academic Year/Term :{" "}
                           <span style={{ color: "red" }}>{activeSchoolYear[0]?.semester_description}{" "} AY {" "}
-                            {activeSchoolYear[0].year_description}-{activeSchoolYear[0].year_description}</span>
+                            {activeSchoolYear[0].year_description}-{activeSchoolYear[0].year_description + 1 || ""}</span>
                         </b>
                       </td>
                     </tr>
@@ -1954,7 +1936,7 @@ const CertificateOfRegistration = forwardRef(
                               border: "none",
                               textAlign: "center",
                               background: "none",
-                              fontSize: "11px",
+                              fontSize: "10px",
                             }}
                           />
                         </td>
@@ -1987,7 +1969,7 @@ const CertificateOfRegistration = forwardRef(
                               border: "none",
                               background: "none",
                               textAlign: "center",
-                              fontSize: "11px",
+                              fontSize: "10px",
                             }}
                           />
                         </td>
@@ -2001,7 +1983,7 @@ const CertificateOfRegistration = forwardRef(
                               border: "none",
                               background: "none",
                               textAlign: "center",
-                              fontSize: "11px",
+                              fontSize: "10px",
                             }}
                           />
                         </td>
@@ -2035,7 +2017,7 @@ const CertificateOfRegistration = forwardRef(
                               border: "none",
                               background: "none",
                               textAlign: "center",
-                              fontSize: "11px",
+                              fontSize: "10px",
                             }}
                             readOnly
                           />
@@ -2053,7 +2035,7 @@ const CertificateOfRegistration = forwardRef(
                               border: "none",
                               background: "none",
                               textAlign: "center",
-                              fontSize: "11px",
+                              fontSize: "10px",
                             }}
                           />
                         </td>
@@ -2070,7 +2052,7 @@ const CertificateOfRegistration = forwardRef(
                               border: "none",
                               background: "none",
                               textAlign: "center",
-                              fontSize: "11px",
+                              fontSize: "10px",
                             }}
                           />
                         </td>
@@ -2084,7 +2066,7 @@ const CertificateOfRegistration = forwardRef(
                               border: "none",
                               background: "none",
                               textAlign: "center",
-                              fontSize: "11px",
+                              fontSize: "10px",
                             }}
                           />
                         </td>
@@ -2105,14 +2087,17 @@ const CertificateOfRegistration = forwardRef(
                         <td colSpan={8} style={{ border: "1px solid black" }}>
                           <input
                             type="text"
-                            value={`Prof. ${item.lname}`}
+                            value={`Prof. ${item.lname}, ${item.fname} ${item.mname || ""}.`}
                             readOnly
                             style={{
-                              width: "98%",
+                              width: "100%", // fill the cell
                               border: "none",
                               background: "none",
                               textAlign: "center",
                               fontSize: "8px",
+                              whiteSpace: "normal",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           />
                         </td>
@@ -3969,21 +3954,21 @@ const CertificateOfRegistration = forwardRef(
                     margin: "0 auto",
                     textAlign: "center",
                     tableLayout: "fixed",
-                    marginTop: "5px",
                     borderLeft: "1px solid black",
                     borderBottom: "1px solid black",
                     borderRight: "1px solid black",
                   }}
                 >
                   <tbody>
-                    {/* TOP ROW: IMAGE (LEFT) + QR (RIGHT) */}
+                    {/* TOP ROW: IMAGE (LEFT) + QR + DATE (RIGHT) */}
                     <tr>
-                      {/* LEFT SIDE */}
+                      {/* LEFT SIDE: Free MIS */}
                       <td
                         style={{
-                          width: "50%",
                           textAlign: "left",
-                          paddingLeft: "50px", // ?? margin-left effect
+                          paddingLeft: "50px", // gap from left edge
+                          verticalAlign: "top",
+                          width: "50%", // can adjust if needed
                         }}
                       >
                         <img
@@ -3996,38 +3981,30 @@ const CertificateOfRegistration = forwardRef(
                         />
                       </td>
 
-                      {/* RIGHT SIDE */}
+                      {/* RIGHT SIDE: QR CODE at top-right, date below */}
                       <td
                         style={{
-                          width: "100%",
-                          paddingRight: "30px",
-                          display: "flex",
-                          justifyContent: "flex-end",
+                          textAlign: "right",
+                          paddingRight: "20px", // gap from right edge
+                          verticalAlign: "top",
+                          width: "50%",
                         }}
                       >
+                        {/* QR CODE */}
                         {hasStudentData && (
                           <img
-                            className="qr-code-img"
-                            style={{ width: "120px", height: "120px", marginRight: "20px", }}
                             src={`${API_BASE_URL}/uploads/QrCodeGenerated/${student_number}_qrcode.png`}
                             alt="QR Code"
+                            style={{
+                              width: "120px",
+                              height: "120px",
+                              display: "block",
+                              marginLeft: "auto", // push to right
+                            }}
                           />
                         )}
-                      </td>
-                    </tr>
 
-                    {/* DATE ROW */}
-                    <tr>
-                      <td
-                        colSpan={2}
-                        style={{
-                          height: "0.25in",
-                          fontSize: "15px",
-                          textAlign: "right",
-                          verticalAlign: "middle",
-                          paddingRight: "20px",
-                        }}
-                      >
+                        {/* LONG DATE */}
                         <input
                           type="text"
                           value={longDate}
@@ -4035,10 +4012,12 @@ const CertificateOfRegistration = forwardRef(
                           style={{
                             color: "black",
                             textAlign: "right",
-                            width: "98%",
+                            width: "100%",
                             border: "none",
                             outline: "none",
                             background: "none",
+                            fontSize: "15px",
+                            marginTop: "5px",
                           }}
                         />
                       </td>
